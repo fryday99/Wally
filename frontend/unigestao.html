@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UniGestão - Portal do Discente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #F4F3EE;
+    color: #1B2430;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  a { color: #0F6B63; }
+  a:hover { color: #0A4C46; }
+
+  .topbar { background: #1B2430; color: #FFFFFF; }
+  .topbar-inner {
+    max-width: 1240px; margin: 0 auto; padding: 14px 24px;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .notice {
+    background: #FFF3D6; color: #5C3D00; border-bottom: 1px solid #E8D29A;
+  }
+  .notice-inner {
+    max-width: 1240px; margin: 0 auto; padding: 10px 24px; font-size: 13px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .status-dot {
+    display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 12px;
+    padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,0.7);
+  }
+  .status-dot i { width: 8px; height: 8px; border-radius: 50%; background: #D97706; display: inline-block; }
+  .status-dot.online i { background: #0B5149; }
+
+  .container {
+    max-width: 1240px; width: 100%; margin: 0 auto; padding: 24px;
+    display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;
+  }
+  .sidebar {
+    flex: 1 1 220px; max-width: 260px; min-width: 200px;
+    background: #FFFFFF; border: 1px solid #DAD8CF; border-radius: 12px; padding: 12px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .sidebar-title {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #5B6573; padding: 8px 10px;
+  }
+  .sidebar a {
+    display: block; text-decoration: none; font-size: 14px; padding: 11px 12px;
+    border-radius: 8px; color: #1B2430; font-weight: 500;
+  }
+  .sidebar a.active { background: #DDF3EE; color: #0B5149; font-weight: 600; }
+
+  .main { flex: 999 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 24px; }
+  .cards-row { display: flex; flex-wrap: wrap; gap: 24px; }
+  .card-student {
+    flex: 1 1 340px; min-width: 0; background: #FFFFFF; border: 1px solid #DAD8CF;
+    border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px;
+  }
+  .card-wallet {
+    flex: 1 1 340px; min-width: 0; background: #0F4C47; color: #FFFFFF;
+    border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px;
+  }
+  .panel {
+    background: #FFFFFF; border: 1px solid #DAD8CF; border-radius: 12px; padding: 24px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  .pill-ok {
+    display: inline-block; background: #DDF3EE; color: #0B5149;
+    font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+  }
+  .pill-no {
+    display: inline-block; background: #FBE4DC; color: #8A2F12;
+    font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+  }
+
+  .btn-wallet {
+    align-self: flex-start; background: #FFFFFF; color: #0F4C47; font-weight: 600; font-size: 14px;
+    border: none; padding: 12px 18px; border-radius: 8px; cursor: pointer; font-family: inherit;
+    transition: transform 0.1s ease, background 0.15s ease;
+  }
+  .btn-wallet:hover { background: #E6F7F4; }
+  .btn-wallet:active { transform: scale(0.98); }
+
+  .btn-secondary {
+    background: #F4F3EE; color: #1B2430; border: 1px solid #DAD8CF; font-weight: 600; font-size: 13px;
+    padding: 7px 12px; border-radius: 8px; cursor: pointer; font-family: inherit;
+  }
+  .btn-secondary:hover { background: #E8E6DE; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 580px; }
+  th {
+    text-align: left; color: #5B6573; font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 10px 12px; border-bottom: 2px solid #DAD8CF;
+  }
+  td { padding: 12px; border-bottom: 1px solid #E8E6DE; }
+  tbody tr.clickable { cursor: pointer; transition: background 0.12s; }
+  tbody tr.clickable:hover { background: #F8F7F3; }
+  tbody tr.selected { background: #F0FAF7; }
+
+  /* Modal / Drawer de Provisionamento Wallet */
+  .wallet-modal {
+    display: none; background: #F0FAF7; border: 1px solid #9AD5C9; border-radius: 12px;
+    padding: 20px; gap: 18px; align-items: center; flex-wrap: wrap;
+  }
+  .wallet-modal.open { display: flex; }
+  .qr-box {
+    width: 112px; height: 112px; background: #FFFFFF; padding: 8px; border-radius: 10px;
+    border: 1px solid #DAD8CF; flex: none;
+  }
+  .qr-box svg { width: 100%; height: 100%; display: block; }
+
+  footer {
+    margin-top: auto; background: #1B2430; color: #C3CBD6; font-size: 13px;
+  }
+  .footer-inner {
+    max-width: 1240px; margin: 0 auto; padding: 20px 24px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+        <rect width="36" height="36" rx="9" fill="#2FA396"></rect>
+        <path d="M11 10v10a7 7 0 0 0 14 0V10" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"></path>
+        <circle cx="18" cy="27" r="1.6" fill="#FFFFFF"></circle>
+      </svg>
+      <div style="display: flex; flex-direction: column">
+        <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.01em">UniGestão</span>
+        <span style="font-size: 12px; color: #C3CBD6">Sistema de Gestão Acadêmica · Protótipo do Grupo C</span>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 20px; font-size: 13px; color: #E3E8EE">
+      <span>Período atual: <strong style="color: #FFFFFF">2026.3</strong></span>
+      <span>Sessão: 00:23</span>
+      <a href="#sair" style="color: #FFFFFF; font-weight: 600; text-decoration: none; border: 1px solid #5A6678; border-radius: 8px; padding: 8px 14px">Sair</a>
+    </div>
+  </div>
+</header>
+
+<div class="notice">
+  <div class="notice-inner">
+    <span>Ambiente de demonstração integrado ao Broker Wally. Clique em qualquer aluno da tabela para emitir ou testar sua carteirinha.</span>
+    <span class="status-dot" id="conn-pill"><i></i><span id="conn-text">Conectando ao Broker...</span></span>
+  </div>
+</div>
+
+<div class="container">
+  <nav aria-label="Menu do discente" class="sidebar">
+    <span class="sidebar-title">Menu do discente</span>
+    <a href="#inicio">Início</a>
+    <a href="#dados">Meus dados pessoais</a>
+    <a href="#carteirinha" class="active">Carteirinha digital</a>
+    <a href="#turmas">Turmas do período</a>
+    <a href="#historico">Histórico de acessos</a>
+    <a href="#ajuda">Ajuda</a>
+  </nav>
+
+  <main class="main">
+    <!-- Cabeçalho do discente + carteirinha -->
+    <section class="cards-row">
+      <div class="card-student">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+          <div style="display: flex; align-items: center; gap: 16px">
+            <div id="st-initials" style="width: 64px; height: 64px; border-radius: 50%; background: #DDF3EE; color: #0B5149; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700">AV</div>
+            <div style="display: flex; flex-direction: column; gap: 2px">
+              <h1 id="st-name" style="margin: 0; font-size: 21px; letter-spacing: -0.01em">ALISON VIANA DIAS</h1>
+              <span style="font-size: 14px; color: #5B6573">Discente · Graduação</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px">
+          <div>
+            <div style="font-size: 12px; color: #5B6573">Matrícula (RA)</div>
+            <div id="st-ra" style="font-size: 16px; font-weight: 600">11202320826</div>
+          </div>
+          <div>
+            <div style="font-size: 12px; color: #5B6573">Status (Banco Legado)</div>
+            <div style="margin-top: 2px; display: flex; align-items: center; gap: 8px">
+              <span id="st-status-pill" class="pill-ok">ATIVO</span>
+              <button type="button" class="btn-secondary" id="btn-toggle-status" title="Alternar ATIVO / TRANCADO para demonstrar bloqueio">Alternar</button>
+            </div>
+          </div>
+          <div style="grid-column: span 2">
+            <div style="font-size: 12px; color: #5B6573">Curso</div>
+            <div id="st-curso" style="font-size: 16px; font-weight: 600">CIÊNCIA E TECNOLOGIA/PROGRAD</div>
+          </div>
+          <div>
+            <div style="font-size: 12px; color: #5B6573">Turma</div>
+            <div id="st-turma" style="font-size: 15px; font-weight: 600">TDB2ESMA002-23SA</div>
+          </div>
+          <div>
+            <div style="font-size: 12px; color: #5B6573">ID Físico (UID)</div>
+            <div id="st-uid" style="font-size: 15px; font-weight: 600">UID-0001</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carteirinha digital -->
+      <div class="card-wallet">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+          <span style="font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #BFE8E1">Carteirinha digital</span>
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#BFE8E1" stroke-width="2" stroke-linecap="round" aria-label="NFC">
+            <path d="M8 9a7 7 0 0 1 0 10M12.5 6a11 11 0 0 1 0 16M17 3a15 15 0 0 1 0 22"></path>
+          </svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span id="wl-name" style="font-size: 20px; font-weight: 700">ALISON VIANA DIAS</span>
+          <span id="wl-sub" style="font-size: 14px; color: #D3EFEA">RA 11202320826 · UniGestão</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; border-top: 1px solid #2F7A72; padding-top: 16px">
+          <div><div style="font-size: 12px; color: #BFE8E1">ID da carteirinha</div><div id="wl-uid" style="font-size: 15px; font-weight: 600">UID-0001</div></div>
+          <div><div style="font-size: 12px; color: #BFE8E1">Acesso</div><div id="wl-acesso" style="font-size: 15px; font-weight: 600">Liberado</div></div>
+          <div><div style="font-size: 12px; color: #BFE8E1">Armazenada em</div><div style="font-size: 15px; font-weight: 600">Wallet do dispositivo</div></div>
+          <div><div style="font-size: 12px; color: #BFE8E1">Privacidade</div><div style="font-size: 15px; font-weight: 600">Token opaco (RA)</div></div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+          <button type="button" class="btn-wallet" id="btn-add-wallet">Adicionar à Wallet</button>
+          <span id="wallet-feedback" style="font-size: 13px; color: #BFE8E1"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Painel de transferência para o Wally (QR Code + Deep Link) -->
+    <section class="wallet-modal" id="wallet-modal">
+      <div class="qr-box" id="wallet-qr"></div>
+      <div style="flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 15px; font-weight: 700; color: #0B5149" id="wm-title">Passe digital pronto para o Wally!</div>
+        <div style="font-size: 13px; color: #1B2430" id="wm-desc">
+          O Broker validou o token sem receber dados pessoais. Abra no aplicativo Wally ou escaneie o QR Code ao lado.
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px">
+          <a id="wm-open-link" href="wally.html" target="_blank" style="background: #0F4C47; color: #FFFFFF; font-weight: 600; font-size: 13px; text-decoration: none; padding: 9px 14px; border-radius: 8px">📲 Abrir carteirinha no Wally</a>
+          <button type="button" class="btn-secondary" id="wm-close">Fechar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Integrantes (Planilha / SQLite) -->
+    <section class="panel">
+      <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
+        <h2 style="margin: 0; font-size: 18px">Discentes cadastrados (<span id="count-alunos">6</span>)</h2>
+        <span style="font-size: 13px; color: #5B6573">Turma TDB2ESMA002-23SA · Clique em um discente para selecionar</span>
+      </div>
+      <div style="overflow-x: auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>RA (Token)</th>
+              <th>ID da carteirinha</th>
+              <th>Status</th>
+              <th>Acesso</th>
+            </tr>
+          </thead>
+          <tbody id="alunos-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Log de acessos em tempo real do Broker -->
+    <section class="panel">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+        <div>
+          <h2 style="margin: 0; font-size: 18px">Últimos acessos (Tempo Real · Broker)</h2>
+          <span style="font-size: 13px; color: #5B6573">Consumido de <code>GET /logs</code> — apenas Token (RA), Recurso e Resultado</span>
+        </div>
+        <button type="button" class="btn-secondary" id="btn-refresh-logs">↻ Atualizar agora</button>
+      </div>
+      <div style="overflow-x: auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Data e hora</th>
+              <th>Leitor / Recurso</th>
+              <th>Token lido (RA)</th>
+              <th>Resultado</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody id="logs-tbody">
+            <tr><td colspan="5" style="color: #5B6573; text-align: center">Carregando logs do Broker...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span>UniGestão · protótipo acadêmico integrado ao Broker Wally</span>
+    <span>Arquitetura Zero-PII: o Broker nunca acessa nome, CPF ou curso</span>
+  </div>
+</footer>
+
+<script>
+const BROKER_URL = 'http://localhost:8000';
+const LEGACY_URL = 'http://localhost:8001';
+
+const FALLBACK_ALUNOS = [
+  { nome: 'ALISON VIANA DIAS', token: '11202320826', uid_carteirinha: 'UID-0001', curso: 'CIÊNCIA E TECNOLOGIA/PROGRAD', turma: 'TDB2ESMA002-23SA', status: 'ativo' },
+  { nome: 'CAIO CAMARGO VENANCIO', token: '11202421752', uid_carteirinha: 'UID-0002', curso: 'CIÊNCIA E TECNOLOGIA/PROGRAD', turma: 'TDB2ESMA002-23SA', status: 'ativo' },
+  { nome: 'CLARA DIAS FERRO', token: '11202421578', uid_carteirinha: 'UID-0003', curso: 'CIÊNCIA E TECNOLOGIA/PROGRAD', turma: 'TDB2ESMA002-23SA', status: 'ativo' },
+  { nome: 'GABRIEL GOMES SANTOS', token: '11202320258', uid_carteirinha: 'UID-0004', curso: 'CIÊNCIA E TECNOLOGIA/PROGRAD', turma: 'TDB2ESMA002-23SA', status: 'ativo' },
+  { nome: 'HAYDAR HUSSEIN MOHSEN', token: '11202532639', uid_carteirinha: 'UID-0005', curso: 'CIÊNCIA E TECNOLOGIA/PROGRAD', turma: 'TDB2ESMA002-23SA', status: 'ativo' },
+  { nome: 'MURILO POCARLI DE CARVALHO', token: '11202021735', uid_carteirinha: 'UID-0006', curso: 'CIÊNCIA E TECNOLOGIA/PROGRAD', turma: 'TDB2ESMA002-23SA', status: 'ativo' }
+];
+
+let alunos = [...FALLBACK_ALUNOS];
+let selectedRa = alunos[0].token;
+
+const qrSvg = s => {
+  let h = 2166136261;
+  for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const R = () => { h = Math.imul(h ^ h >>> 15, 2246822507); h ^= h >>> 13; return (h >>> 0) / 4294967296; }, N = 25;
+  let d = '';
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    let on;
+    if (x < 7 && y < 7 || x > N - 8 && y < 7 || x < 7 && y > N - 8) {
+      const u = x < 7 ? x : x - (N - 7), v = y < 7 ? y : y - (N - 7);
+      on = u == 0 || u == 6 || v == 0 || v == 6 || (u > 1 && u < 5 && v > 1 && v < 5);
+    } else on = R() > 0.52;
+    if (on) d += 'M' + x + ' ' + y + 'h1v1h-1z';
+  }
+  return `<svg viewBox="-1 -1 27 27" shape-rendering="crispEdges"><path d="${d}" fill="#1B2430"/></svg>`;
+};
+
+function getInitials(nome) {
+  const parts = (nome || '').trim().split(/\s+/);
+  return ((parts[0]?.[0] || '') + (parts[parts.length - 1]?.[0] || '')).toUpperCase();
+}
+
+function renderSelectedStudent() {
+  const a = alunos.find(x => x.token === selectedRa) || alunos[0];
+  if (!a) return;
+  selectedRa = a.token;
+  const ativo = (a.status || '').toLowerCase() === 'ativo';
+
+  document.getElementById('st-initials').textContent = getInitials(a.nome);
+  document.getElementById('st-name').textContent = a.nome;
+  document.getElementById('st-ra').textContent = a.token;
+  document.getElementById('st-curso').textContent = a.curso;
+  document.getElementById('st-turma').textContent = a.turma || 'TDB2ESMA002-23SA';
+  document.getElementById('st-uid').textContent = a.uid_carteirinha;
+
+  const pill = document.getElementById('st-status-pill');
+  pill.textContent = a.status.toUpperCase();
+  pill.className = ativo ? 'pill-ok' : 'pill-no';
+
+  document.getElementById('wl-name').textContent = a.nome;
+  document.getElementById('wl-sub').textContent = `RA ${a.token} · UniGestão`;
+  document.getElementById('wl-uid').textContent = a.uid_carteirinha;
+  document.getElementById('wl-acesso').textContent = ativo ? 'Liberado' : 'Bloqueado';
+}
+
+function renderTabelaAlunos() {
+  const tbody = document.getElementById('alunos-tbody');
+  document.getElementById('count-alunos').textContent = alunos.length;
+  tbody.innerHTML = '';
+
+  alunos.forEach(a => {
+    const ativo = (a.status || '').toLowerCase() === 'ativo';
+    const tr = document.createElement('tr');
+    tr.className = 'clickable' + (a.token === selectedRa ? ' selected' : '');
+    tr.innerHTML = `
+      <td style="font-weight: 600">${a.nome}</td>
+      <td><code>${a.token}</code></td>
+      <td>${a.uid_carteirinha}</td>
+      <td><span class="${ativo ? 'pill-ok' : 'pill-no'}">${a.status.toUpperCase()}</span></td>
+      <td style="font-weight: 600; color: ${ativo ? '#0B5149' : '#8A2F12'}">${ativo ? 'SIM' : 'NÃO'}</td>
+    `;
+    tr.onclick = () => {
+      selectedRa = a.token;
+      document.getElementById('wallet-modal').classList.remove('open');
+      document.getElementById('wallet-feedback').textContent = '';
+      renderSelectedStudent();
+      renderTabelaAlunos();
+    };
+    tbody.appendChild(tr);
+  });
+}
+
+async function carregarAlunos() {
+  try {
+    const resp = await fetch(`${LEGACY_URL}/interno/alunos`);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (Array.isArray(data.alunos) && data.alunos.length) {
+        alunos = data.alunos;
+      }
+    }
+  } catch (_) {}
+  renderSelectedStudent();
+  renderTabelaAlunos();
+}
+
+// Alternar status no banco legado (ATIVO <-> TRANCADO) para testar bloqueio ao vivo
+document.getElementById('btn-toggle-status').onclick = async () => {
+  const a = alunos.find(x => x.token === selectedRa);
+  if (!a) return;
+  const novoStatus = a.status.toLowerCase() === 'ativo' ? 'trancado' : 'ativo';
+  try {
+    const resp = await fetch(`${LEGACY_URL}/interno/aluno/${a.token}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: novoStatus })
+    });
+    if (resp.ok) {
+      await carregarAlunos();
+      return;
+    }
+  } catch (_) {}
+  a.status = novoStatus;
+  renderSelectedStudent();
+  renderTabelaAlunos();
+};
+
+// Botão "Adicionar à Wallet" chama o Broker de verdade e gera link/QR para o Wally!
+document.getElementById('btn-add-wallet').onclick = async () => {
+  const a = alunos.find(x => x.token === selectedRa) || alunos[0];
+  const btn = document.getElementById('btn-add-wallet');
+  const fb = document.getElementById('wallet-feedback');
+  btn.disabled = true;
+  btn.textContent = 'Provisionando no Broker...';
+
+  let brokerInfo = 'Token validado';
+  try {
+    const resp = await fetch(`${BROKER_URL}/wallet/provisionar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: a.token, origem: 'portal_unigestao' })
+    });
+    const data = await resp.json();
+    brokerInfo = data.autorizado
+      ? `Broker autorizou emissão (token ${data.token})`
+      : `Broker alertou status: ${data.motivo}`;
+    carregarLogs();
+  } catch (_) {
+    brokerInfo = 'Modo offline (inicie o Broker na porta 8000)';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Adicionar à Wallet';
+  }
+
+  fb.textContent = '✓ ' + brokerInfo;
+
+  const payload = ['WALLY1', 'Estudante', a.nome, a.curso, 'UFABC · UniGestão', a.token, '2027-03-31', 'wally'].join('|');
+  const wallyUrl = `wally.html?import=${encodeURIComponent(payload)}`;
+
+  document.getElementById('wm-title').textContent = `Carteirinha de ${a.nome} pronta para a Wallet!`;
+  document.getElementById('wm-desc').textContent = `${brokerInfo}. Nenhum dado pessoal foi armazenado no Broker. Abra no Wally ou leia o QR Code:`;
+  document.getElementById('wm-open-link').href = wallyUrl;
+  document.getElementById('wallet-qr').innerHTML = qrSvg(wallyUrl);
+  document.getElementById('wallet-modal').classList.add('open');
+};
+
+document.getElementById('wm-close').onclick = () => {
+  document.getElementById('wallet-modal').classList.remove('open');
+};
+
+const NOMES_RECURSO = {
+  catraca_principal: 'Catraca Principal',
+  biblioteca: 'Biblioteca',
+  refeitorio: 'Refeitório',
+  'wallet:portal_unigestao': 'Emissão Wallet (UniGestão)',
+  'wallet:copia_carteirinha_fisica': 'Clonagem Carteirinha Física'
+};
+
+async function carregarLogs() {
+  const tbody = document.getElementById('logs-tbody');
+  const pill = document.getElementById('conn-pill');
+  const text = document.getElementById('conn-text');
+
+  try {
+    const resp = await fetch(`${BROKER_URL}/logs`);
+    const data = await resp.json();
+    pill.className = 'status-dot online';
+    text.textContent = `Broker online · ${data.total} evento(s)`;
+
+    if (!data.logs || data.logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color: #5B6573; text-align: center">Nenhum acesso registrado ainda. Clique em "Adicionar à Wallet" ou valide no Wally.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    data.logs.forEach(l => {
+      const tr = document.createElement('tr');
+      const quando = (l.timestamp || '').replace('T', ' ');
+      const leitor = NOMES_RECURSO[l.recurso] || l.recurso;
+      tr.innerHTML = `
+        <td>${quando}</td>
+        <td>${leitor}</td>
+        <td><code>${l.token}</code></td>
+        <td><span class="${l.autorizado ? 'pill-ok' : 'pill-no'}">${l.autorizado ? 'Liberado' : 'Negado'}</span></td>
+        <td style="color: #5B6573; font-size: 13px">${l.motivo}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    pill.className = 'status-dot';
+    text.textContent = 'Broker offline (rode uvicorn na porta 8000)';
+    tbody.innerHTML = '<tr><td colspan="5" style="color: #8A2F12; text-align: center">Não foi possível conectar ao Broker em http://localhost:8000/logs</td></tr>';
+  }
+}
+
+document.getElementById('btn-refresh-logs').onclick = carregarLogs;
+
+carregarAlunos();
+carregarLogs();
+setInterval(carregarLogs, 2000);
+</script>
+</body>
+</html>

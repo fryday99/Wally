@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo — Broker de Acesso</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --green: #22c55e;
+    --red: #ef4444;
+    --accent: #38bdf8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header h1 { font-size: 18px; margin: 0; }
+  nav { display: flex; gap: 8px; }
+  nav button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  nav button.active {
+    background: var(--accent);
+    color: #0f172a;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  main { max-width: 780px; margin: 0 auto; padding: 32px 24px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* --- Leitor --- */
+  .reader-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+  .reader-card select, .reader-card input {
+    width: 100%;
+    padding: 10px 12px;
+    margin: 8px 0 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #0f172a;
+    color: var(--text);
+    font-size: 15px;
+  }
+  label { font-size: 13px; color: var(--muted); display: block; text-align: left; }
+  .approach-btn {
+    width: 100%;
+    padding: 18px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent);
+    color: #0f172a;
+    cursor: pointer;
+  }
+  .approach-btn:disabled { opacity: 0.6; cursor: wait; }
+  .result {
+    margin-top: 24px;
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result.ok { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid var(--green); }
+  .result.fail { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid var(--red); }
+  .result small { display: block; font-weight: 400; color: var(--muted); margin-top: 6px; font-size: 13px; }
+
+  /* --- Admin --- */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; }
+  .badge { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .badge.ok { background: rgba(34,197,94,0.15); color: var(--green); }
+  .badge.fail { background: rgba(239,68,68,0.15); color: var(--red); }
+  .refresh {
+    background: transparent; border: 1px solid var(--border); color: var(--text);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; margin-bottom: 16px; font-size: 13px;
+  }
+  .empty { color: var(--muted); text-align: center; padding: 40px 0; }
+  .note {
+    font-size: 13px; color: var(--muted); margin-top: 20px; padding: 14px;
+    background: var(--card); border-radius: 10px; border: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔐 Demo — Broker de Acesso</h1>
+  <nav>
+    <button id="btn-reader" class="active">Leitor (catraca)</button>
+    <button id="btn-compare">🔍 Comparar acesso</button>
+    <button id="btn-admin">Painel admin</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- VIEW: LEITOR -->
+  <div id="view-reader" class="view active">
+    <div class="reader-card">
+      <label for="token">Token do aluno (simula aproximar o celular)</label>
+      <select id="token">
+        <option value="11202320826">11202320826 — ALISON VIANA DIAS (UID-0001)</option>
+        <option value="11202421752">11202421752 — CAIO CAMARGO VENANCIO (UID-0002)</option>
+        <option value="11202421578">11202421578 — CLARA DIAS FERRO (UID-0003)</option>
+        <option value="11202320258">11202320258 — GABRIEL GOMES SANTOS (UID-0004)</option>
+        <option value="11202532639">11202532639 — HAYDAR HUSSEIN MOHSEN (UID-0005)</option>
+        <option value="11202021735">11202021735 — MURILO POCARLI DE CARVALHO (UID-0006)</option>
+        <option value="GHOST999">GHOST999 — token inexistente</option>
+      </select>
+
+      <label for="recurso">Recurso sendo acessado</label>
+      <select id="recurso">
+        <option value="catraca_principal">Catraca principal</option>
+        <option value="biblioteca">Biblioteca</option>
+        <option value="refeitorio">Refeitório</option>
+      </select>
+
+      <button class="approach-btn" id="btn-approach">📲 Aproximar celular</button>
+
+      <div class="result" id="result"></div>
+    </div>
+    <p class="note">
+      Isso simula o momento em que o aluno encosta o celular no leitor.
+      O clique dispara um <code>POST /acesso</code> pro broker, que pergunta
+      pro sistema legado e decide — nenhum dado pessoal passa por aqui.
+    </p>
+  </div>
+
+  <!-- VIEW: COMPARAÇÃO (o argumento de segurança, na prática) -->
+  <div id="view-compare" class="view">
+    <label for="compare-token">Escolha um aluno pra comparar</label>
+    <select id="compare-token" style="width:100%; padding:10px 12px; margin:8px 0 20px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:15px;">
+      <option value="11202320826">11202320826 — ALISON VIANA DIAS</option>
+      <option value="11202421752">11202421752 — CAIO CAMARGO VENANCIO</option>
+      <option value="11202421578">11202421578 — CLARA DIAS FERRO</option>
+      <option value="11202320258">11202320258 — GABRIEL GOMES SANTOS</option>
+      <option value="11202532639">11202532639 — HAYDAR HUSSEIN MOHSEN</option>
+      <option value="11202021735">11202021735 — MURILO POCARLI DE CARVALHO</option>
+    </select>
+    <button class="approach-btn" id="btn-compare-run" style="margin-bottom:24px;">Comparar</button>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div>
+        <h3 style="font-size:14px; color:var(--red); margin-bottom:10px;">🗄️ O que existe no banco da instituição</h3>
+        <pre id="compare-full" style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; font-size:12px; overflow-x:auto; min-height:220px; color:var(--text);">—</pre>
+      </div>
+      <div>
+        <h3 style="font-size:14px; color:var(--green); margin-bottom:10px;">🔒 O que o broker realmente recebe</h3>
+        <pre id="compare-broker" style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; font-size:12px; overflow-x:auto; min-height:220px; color:var(--text);">—</pre>
+      </div>
+    </div>
+    <p class="note">
+      Essa é a prova do argumento central do projeto: a instituição mantém
+      o banco completo e intacto; o broker, mesmo perguntando sobre o mesmo
+      aluno, nunca recebe mais do que <code>autorizado</code> e
+      <code>status_geral</code>.
+    </p>
+  </div>
+
+  <!-- VIEW: ADMIN -->
+  <div id="view-admin" class="view">
+    <button class="refresh" id="btn-refresh">↻ Atualizar logs</button>
+    <table>
+      <thead>
+        <tr><th>Horário</th><th>Token</th><th>Recurso</th><th>Resultado</th><th>Motivo</th></tr>
+      </thead>
+      <tbody id="logs-body"></tbody>
+    </table>
+    <div class="empty" id="empty-msg" style="display:none;">Nenhum acesso registrado ainda. Teste no Leitor.</div>
+    <p class="note">
+      Repare: o painel mostra só token, recurso e resultado — nunca nome,
+      CPF ou qualquer dado pessoal, porque o broker nunca teve acesso a isso.
+    </p>
+  </div>
+
+</main>
+
+<script>
+  const BROKER_URL = "http://localhost:8000";
+
+  // --- navegação entre telas ---
+  const LEGACY_URL = "http://localhost:8001";
+
+  const btnReader = document.getElementById("btn-reader");
+  const btnAdmin = document.getElementById("btn-admin");
+  const btnCompare = document.getElementById("btn-compare");
+  const viewReader = document.getElementById("view-reader");
+  const viewAdmin = document.getElementById("view-admin");
+  const viewCompare = document.getElementById("view-compare");
+
+  const allBtns = [btnReader, btnCompare, btnAdmin];
+  const allViews = [viewReader, viewCompare, viewAdmin];
+
+  function mostrar(view, btn) {
+    allViews.forEach(v => v.classList.remove("active"));
+    allBtns.forEach(b => b.classList.remove("active"));
+    view.classList.add("active");
+    btn.classList.add("active");
+  }
+
+  btnReader.onclick = () => mostrar(viewReader, btnReader);
+  btnCompare.onclick = () => mostrar(viewCompare, btnCompare);
+  btnAdmin.onclick = () => { mostrar(viewAdmin, btnAdmin); carregarLogs(); };
+
+  // --- comparação banco completo vs. o que o broker recebe ---
+  document.getElementById("btn-compare-run").onclick = async () => {
+    const token = document.getElementById("compare-token").value;
+    const fullEl = document.getElementById("compare-full");
+    const brokerEl = document.getElementById("compare-broker");
+    fullEl.textContent = "Carregando..."; brokerEl.textContent = "Carregando...";
+
+    try {
+      const fullResp = await fetch(`${LEGACY_URL}/interno/aluno?id=${token}`);
+      const fullData = await fullResp.json();
+      fullEl.textContent = JSON.stringify(fullData, null, 2);
+    } catch (e) {
+      fullEl.textContent = `Erro ao consultar ${LEGACY_URL} (sistema legado rodando?)`;
+    }
+
+    try {
+      const brokerResp = await fetch(`${BROKER_URL}/acesso`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, recurso: "catraca_principal" }),
+      });
+      const brokerData = await brokerResp.json();
+      brokerEl.textContent = JSON.stringify(brokerData, null, 2);
+    } catch (e) {
+      brokerEl.textContent = `Erro ao consultar ${BROKER_URL} (broker rodando?)`;
+    }
+  };
+
+  // --- leitor ---
+  const btnApproach = document.getElementById("btn-approach");
+  const resultDiv = document.getElementById("result");
+
+  btnApproach.onclick = async () => {
+    const token = document.getElementById("token").value;
+    const recurso = document.getElementById("recurso").value;
+
+    btnApproach.disabled = true;
+    btnApproach.textContent = "Consultando...";
+    resultDiv.classList.remove("show", "ok", "fail");
+
+    try {
+      const resp = await fetch(`${BROKER_URL}/acesso`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, recurso }),
+      });
+      const data = await resp.json();
+
+      resultDiv.classList.add("show", data.autorizado ? "ok" : "fail");
+      resultDiv.innerHTML = data.autorizado
+        ? `✅ ACESSO LIBERADO <small>token ${data.token} · ${data.recurso}</small>`
+        : `⛔ ACESSO NEGADO <small>motivo: ${data.motivo}</small>`;
+    } catch (err) {
+      resultDiv.classList.add("show", "fail");
+      resultDiv.innerHTML = `⚠️ Não foi possível falar com o broker <small>verifique se ele está rodando em ${BROKER_URL}</small>`;
+    } finally {
+      btnApproach.disabled = false;
+      btnApproach.textContent = "📲 Aproximar celular";
+    }
+  };
+
+  // --- admin ---
+  const logsBody = document.getElementById("logs-body");
+  const emptyMsg = document.getElementById("empty-msg");
+  document.getElementById("btn-refresh").onclick = carregarLogs;
+
+  async function carregarLogs() {
+    try {
+      const resp = await fetch(`${BROKER_URL}/logs`);
+      const data = await resp.json();
+      logsBody.innerHTML = "";
+
+      if (!data.logs || data.logs.length === 0) {
+        emptyMsg.style.display = "block";
+        return;
+      }
+      emptyMsg.style.display = "none";
+
+      data.logs.forEach((log) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${log.timestamp.replace("T", " ")}</td>
+          <td>${log.token}</td>
+          <td>${log.recurso}</td>
+          <td><span class="badge ${log.autorizado ? "ok" : "fail"}">${log.autorizado ? "Liberado" : "Negado"}</span></td>
+          <td>${log.motivo}</td>
+        `;
+        logsBody.appendChild(tr);
+      });
+    } catch (err) {
+      logsBody.innerHTML = "";
+      emptyMsg.textContent = `⚠️ Não foi possível carregar os logs (broker rodando em ${BROKER_URL}?)`;
+      emptyMsg.style.display = "block";
+    }
+  }
+</script>
+
+</body>
+</html>
