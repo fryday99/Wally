@@ -24,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-LEGACY_SYSTEM_URL = "https://api.render.com/deploy/srv-dc3evmuq1p3s738mkp4g?key=rOZwrnbSJNU"
+LEGACY_SYSTEM_URL = "https://legacy-system-cyc5.onrender.com"
 LOGS: list[dict] = []
 
 
